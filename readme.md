@@ -1,6 +1,6 @@
 # App Store Server Notifications in Golang [![](https://github.com/izniburak/appstore-notifications-go/actions/workflows/go.yml/badge.svg)](https://github.com/izniburak/appstore-notifications-go/actions) [![PkgGoDev](https://pkg.go.dev/badge/github.com/izniburak/appstore-notifications-go)](https://pkg.go.dev/github.com/izniburak/appstore-notifications-go)
 
-`appstore-notifications-go` package helps you to handle and process the Apple's App Store Server Notifications in Golang.
+***appstore-notifications-go*** package helps you to handle and process the Apple's [App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications) in Golang.
 
 ## Install
 
@@ -44,7 +44,7 @@ func main() {
 
 ## Contributing
 
-1. Fork [this repo](https://github.com/izniburak/github.com/izniburak/appstore-notifications-go/fork)
+1. Fork [this repo](https://github.com/izniburak/appstore-notifications-go/fork)
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
@@ -55,5 +55,5 @@ func main() {
 - [izniburak](https://github.com/izniburak) İzni Burak Demirtaş - creator, maintainer
 
 ## License
-The MIT License (MIT) - see [`license.md`](https://github.com/izniburak/github.com/izniburak/appstore-notifications-go/blob/main/license.md) for more details
+The MIT License (MIT) - see [`license.md`](https://github.com//izniburak/appstore-notifications-go/blob/main/license.md) for more details
 
