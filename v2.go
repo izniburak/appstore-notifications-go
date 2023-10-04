@@ -13,7 +13,7 @@ import (
 
 func New(payload string, appleRootCert string) *AppStoreServerNotification {
 	asn := &AppStoreServerNotification{}
-	asn.isValid = false
+	asn.IsValid = false
 	asn.appleRootCert = appleRootCert
 	asn.parseJwtSignedPayload(payload)
 	return asn
@@ -155,5 +155,5 @@ func (asn *AppStoreServerNotification) parseJwtSignedPayload(payload string) {
 	asn.RenewalInfo = renewalInfo
 
 	// valid request
-	asn.isValid = true
+	asn.IsValid = true
 }

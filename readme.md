@@ -1,8 +1,11 @@
 # App Store Server Notifications in Golang [![](https://github.com/izniburak/appstore-notifications-go/actions/workflows/go.yml/badge.svg)](https://github.com/izniburak/appstore-notifications-go/actions) [![PkgGoDev](https://pkg.go.dev/badge/github.com/izniburak/appstore-notifications-go)](https://pkg.go.dev/github.com/izniburak/appstore-notifications-go)
 
-***appstore-notifications-go*** package helps you to handle and process the Apple's [App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications) in Golang.
+***appstore-notifications-go*** is a Golang package, which helps you to handle, parse and verify the Apple's [App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications).
+
+> App Store Server Notifications is a service provided by Apple for its App Store. It's designed to notify developers about key events and changes related to their app's in-app purchases and subscriptions. By integrating this service into their server-side logic, developers can receive real-time (I think, almost real-time) updates about various events without having to repeatedly poll the Apple servers.
 
 ## Install
+To install the package, you can use following command on your terminal in your project directory:
 
 ```bash
 go get github.com/izniburak/appstore-notifications-go
@@ -38,9 +41,16 @@ func main() {
 	}
 
 	appStoreServerNotification := appstore.New(request.SignedPayload, rootCert)
-	fmt.Printf("App Store Server Notification is valid?: %t\n", appStoreServerNotification.isValid)
+	fmt.Printf("App Store Server Notification is valid?: %t\n", appStoreServerNotification.IsValid)
+	fmt.Printf("Product Id: %s\n", appStoreServerNotification.TransactionInfo.ProductId)
 }
 ```
+You can access the all data in the payload by using one of the 4 params in instance of the `AppStoreServerNotification`:
+
+- _instance_***.Payload***: Access the [Payload](https://developer.apple.com/documentation/appstoreservernotifications/responsebodyv2decodedpayload).
+- _instance_***.TransactionInfo***: Access the [Transaction Info](https://developer.apple.com/documentation/appstoreservernotifications/jwstransactiondecodedpayload).
+- _instance_***.RenewalInfo***: Access the [Renewal Info](https://developer.apple.com/documentation/appstoreservernotifications/jwsrenewalinfodecodedpayload).
+- _instance_***.IsValid***: Check the payload parsed and verified successfully.
 
 ## Contributing
 
