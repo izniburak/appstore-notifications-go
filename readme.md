@@ -1,6 +1,6 @@
 # App Store Server Notifications in Golang [![](https://github.com/izniburak/appstore-notifications-go/actions/workflows/go.yml/badge.svg)](https://github.com/izniburak/appstore-notifications-go/actions) [![PkgGoDev](https://pkg.go.dev/badge/github.com/izniburak/appstore-notifications-go)](https://pkg.go.dev/github.com/izniburak/appstore-notifications-go)
 
-***appstore-notifications-go*** is a Golang package, which helps you to handle, parse and verify the Apple's [App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications).
+***appstore-notifications-go*** is a Golang package designed to assist in handling, verifying, and parsing the [App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications), which is a webhook service corresponds to Apple's App Store events related to your apps.
 
 > App Store Server Notifications is a service provided by Apple for its App Store. It's designed to notify developers about key events and changes related to their app's in-app purchases and subscriptions. By integrating this service into their server-side logic, developers can receive real-time (I think, almost real-time) updates about various events without having to repeatedly poll the Apple servers.
 
