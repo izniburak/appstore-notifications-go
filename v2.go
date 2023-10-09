@@ -23,7 +23,7 @@ func (asn *AppStoreServerNotification) extractHeaderByIndex(payload string, inde
 	// get header from token
 	payloadArr := strings.Split(payload, ".")
 
-	//convert header to byte
+	// convert header to byte
 	headerByte, err := base64.RawStdEncoding.DecodeString(payloadArr[0])
 	if err != nil {
 		return nil, err
@@ -46,36 +46,35 @@ func (asn *AppStoreServerNotification) extractHeaderByIndex(payload string, inde
 }
 
 func (asn *AppStoreServerNotification) verifyCertificate(certByte []byte, intermediateCert []byte) error {
-	// new empty set of certificate pool
+	// create certificate pool
 	roots := x509.NewCertPool()
 
-	// parse and append app store certificate to certPool
+	// parse and append apple root certificate to the pool
 	ok := roots.AppendCertsFromPEM([]byte(asn.appleRootCert))
 	if !ok {
-		return errors.New("failed to parse root certificate")
+		return errors.New("root certificate couldn't be parsed")
 	}
 
-	// parse and append intermediate X5c certificate
+	// parse and append intermediate x5c certificate
 	interCert, err := x509.ParseCertificate(intermediateCert)
 	if err != nil {
-		return errors.New("failed to parse intermediate certificate")
+		return errors.New("intermediate certificate couldn't be parsed")
 	}
 	intermediate := x509.NewCertPool()
 	intermediate.AddCert(interCert)
 
-	// parse X5c certificate
+	// parse x5c certificate
 	cert, err := x509.ParseCertificate(certByte)
 	if err != nil {
 		return err
 	}
 
-	// append certificate pool to verify options of x509
+	// verify X5c certificate using app store certificate resides in opts
 	opts := x509.VerifyOptions{
 		Roots:         roots,
 		Intermediates: intermediate,
 	}
-
-	if _, err := cert.Verify(opts); err != nil { // verify X5c certificate using app store certificate resides in opts
+	if _, err := cert.Verify(opts); err != nil {
 		return err
 	}
 
@@ -105,19 +104,19 @@ func (asn *AppStoreServerNotification) extractPublicKeyFromPayload(payload strin
 }
 
 func (asn *AppStoreServerNotification) parseJwtSignedPayload(payload string) {
-	// get root cert from X5c header
+	// get root certificate from x5c header
 	rootCertStr, err := asn.extractHeaderByIndex(payload, 2)
 	if err != nil {
 		panic(err)
 	}
 
-	// get intermediate cert from X5c header
+	// get intermediate certificate from x5c header
 	intermediateCertStr, err := asn.extractHeaderByIndex(payload, 1)
 	if err != nil {
 		panic(err)
 	}
 
-	// verify certs. if not verified, throw panic
+	// verify certificates
 	if err = asn.verifyCertificate(rootCertStr, intermediateCertStr); err != nil {
 		panic(err)
 	}
