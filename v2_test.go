@@ -5,16 +5,22 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/joho/godotenv"
 )
 
 func TestServerNotificationV2(t *testing.T) {
 	// {"signedPayload":"..."}
-	appStoreServerRequest := os.Getenv("APPLE_NOTIFICATIONNOTIFICATION_REQUEST")
+	err := godotenv.Load()
+	if err != nil {
+		panic(fmt.Errorf("Test error. Could not load .env file: %w", err))
+	}
+	appStoreServerRequest := os.Getenv("SUBSCRIBED_NOTIFICATION")
 	if appStoreServerRequest == "" {
 		t.Skip("No valid AppStoreServerRequest")
 	}
 	var request AppStoreServerRequest
-	err := json.Unmarshal([]byte(appStoreServerRequest), &request) // bind byte to header structure
+	err = json.Unmarshal([]byte(appStoreServerRequest), &request) // bind byte to header structure
 	if err != nil {
 		panic(err)
 	}
@@ -37,18 +43,24 @@ func TestServerNotificationV2(t *testing.T) {
 
 	println(appStoreServerNotification.Payload.Data.BundleId)
 	println(appStoreServerNotification.TransactionInfo.ProductId)
-	fmt.Printf("Product Id: %s", appStoreServerNotification.RenewalInfo.ProductId)
+	fmt.Printf("Product Id: %s\n", appStoreServerNotification.RenewalInfo.ProductId)
+	fmt.Printf("DateSigned: %d\n", appStoreServerNotification.Payload.SignedDate)
+	fmt.Printf("IssuedAt: %d\n", appStoreServerNotification.Payload.IssuedAt)
 }
 
 func TestServerTestNotificationV2(t *testing.T) {
 	// App store test notification issued after requesting a test notification
 	// {"signedPayload":"..."}
-	appStoreServerRequest := os.Getenv("APPLE_NOTIFICATION_TEST_REQUEST")
+	err := godotenv.Load()
+	if err != nil {
+		panic(fmt.Errorf("Test error. Could not load .env file: %w", err))
+	}
+	appStoreServerRequest := os.Getenv("TEST_NOTIFICATION")
 	if appStoreServerRequest == "" {
 		t.Skip("No valid AppStoreServerTestRequest")
 	}
 	var request AppStoreServerRequest
-	err := json.Unmarshal([]byte(appStoreServerRequest), &request)
+	err = json.Unmarshal([]byte(appStoreServerRequest), &request)
 	if err != nil {
 		panic(err)
 	}
@@ -72,4 +84,6 @@ func TestServerTestNotificationV2(t *testing.T) {
 	println(appStoreServerNotification.Payload.Data.BundleId)
 	fmt.Printf("Notification Type: %s\n", appStoreServerNotification.Payload.NotificationType)
 	fmt.Printf("Notification Sub-Type: %s\n", appStoreServerNotification.Payload.Subtype)
+	fmt.Printf("DateSigned: %d\n", appStoreServerNotification.Payload.SignedDate)
+	fmt.Printf("IssuedAt: %d\n", appStoreServerNotification.Payload.IssuedAt)
 }
