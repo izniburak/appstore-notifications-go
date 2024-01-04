@@ -1,4 +1,4 @@
-module github.com/izniburak/appstore-notifications-go
+module github.com/miedda/appstore-notifications-go
 
 go 1.18
 
