@@ -132,27 +132,30 @@ func (asn *AppStoreServerNotification) parseJwtSignedPayload(payload string) {
 	asn.Payload = notificationPayload
 
 	// transaction info
-	transactionInfo := &TransactionInfo{}
 	payload = asn.Payload.Data.SignedTransactionInfo
-	_, err = jwt.ParseWithClaims(payload, transactionInfo, func(token *jwt.Token) (interface{}, error) {
-		return asn.extractPublicKeyFromPayload(payload)
-	})
-	if err != nil {
-		panic(err)
+	if payload != "" {
+		transactionInfo := &TransactionInfo{}
+		_, err = jwt.ParseWithClaims(payload, transactionInfo, func(token *jwt.Token) (interface{}, error) {
+			return asn.extractPublicKeyFromPayload(payload)
+		})
+		if err != nil {
+			panic(err)
+		}
+		asn.TransactionInfo = transactionInfo
 	}
-	asn.TransactionInfo = transactionInfo
 
 	// renewal info
-	renewalInfo := &RenewalInfo{}
 	payload = asn.Payload.Data.SignedRenewalInfo
-	_, err = jwt.ParseWithClaims(payload, renewalInfo, func(token *jwt.Token) (interface{}, error) {
-		return asn.extractPublicKeyFromPayload(payload)
-	})
-	if err != nil {
-		panic(err)
+	if payload != "" {
+		renewalInfo := &RenewalInfo{}
+		_, err = jwt.ParseWithClaims(payload, renewalInfo, func(token *jwt.Token) (interface{}, error) {
+			return asn.extractPublicKeyFromPayload(payload)
+		})
+		if err != nil {
+			panic(err)
+		}
+		asn.RenewalInfo = renewalInfo
 	}
-	asn.RenewalInfo = renewalInfo
-
 	// valid request
 	asn.IsValid = true
 }
