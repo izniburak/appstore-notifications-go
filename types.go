@@ -53,6 +53,7 @@ type NotificationData struct {
 type TransactionInfo struct {
 	jwt.StandardClaims
 	AppAccountToken             string `json:"appAccountToken"`
+	Currency                    string `json:"currency"`
 	BundleId                    string `json:"bundleId"`
 	Environment                 string `json:"environment"`
 	ExpiresDate                 int    `json:"expiresDate"`
@@ -62,6 +63,7 @@ type TransactionInfo struct {
 	OfferType                   int32  `json:"offerType"`
 	OriginalPurchaseDate        int    `json:"originalPurchaseDate"`
 	OriginalTransactionId       string `json:"originalTransactionId"`
+	Price                       string `json:"price"`
 	ProductId                   string `json:"productId"`
 	PurchaseDate                int    `json:"purchaseDate"`
 	Quantity                    int32  `json:"quantity"`
