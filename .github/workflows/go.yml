@@ -27,5 +27,5 @@ jobs:
       - name: Test
         run: go test -v ./...
         env:
-          APPLE_NOTIFICATION_REQUEST: ${{ vars.APPLE_NOTIFICATION_REQUEST }}
+          APPLE_NOTIFICATION_REQUEST: '${{ vars.APPLE_NOTIFICATION_REQUEST }}'
           APPLE_CERT: ${{ vars.APPLE_CERT }}
