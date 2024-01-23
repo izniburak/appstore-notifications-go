@@ -37,5 +37,5 @@ func TestServerNotificationV2(t *testing.T) {
 
 	println(appStoreServerNotification.Payload.Data.BundleId)
 	println(appStoreServerNotification.TransactionInfo.ProductId)
-	fmt.Printf("Product Id: %s", appStoreServerNotification.RenewalInfo.ProductId)
+	fmt.Printf("Product Id: %s\n", appStoreServerNotification.RenewalInfo.ProductId)
 }
