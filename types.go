@@ -27,6 +27,7 @@ type NotificationPayload struct {
 	Version          string              `json:"version"`
 	Summary          NotificationSummary `json:"summary"`
 	Data             NotificationData    `json:"data"`
+	SignedDate       int                 `json:"signedDate"`
 }
 
 type NotificationSummary struct {
