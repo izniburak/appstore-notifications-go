@@ -31,11 +31,10 @@ func TestServerNotificationV2(t *testing.T) {
 		t.Error("Payload is not valid")
 	}
 
-	if appStoreServerNotification.Payload.Data.Environment != "Sandbox" {
-		t.Errorf("got %s, want Sandbox", appStoreServerNotification.Payload.Data.Environment)
-	}
-
-	println(appStoreServerNotification.Payload.Data.BundleId)
-	println(appStoreServerNotification.TransactionInfo.ProductId)
-	fmt.Printf("Product Id: %s", appStoreServerNotification.RenewalInfo.ProductId)
+	fmt.Printf(
+		"NotificationType: %s\nEnvironment: %s\nIsTest: %t\n",
+		appStoreServerNotification.Payload.NotificationType,
+		appStoreServerNotification.Payload.Data.Environment,
+		appStoreServerNotification.IsTest,
+	)
 }

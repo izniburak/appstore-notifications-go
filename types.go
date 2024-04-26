@@ -8,6 +8,7 @@ type AppStoreServerNotification struct {
 	TransactionInfo *TransactionInfo
 	RenewalInfo     *RenewalInfo
 	IsValid         bool
+	IsTest          bool
 }
 
 type AppStoreServerRequest struct {
@@ -21,12 +22,21 @@ type NotificationHeader struct {
 
 type NotificationPayload struct {
 	jwt.StandardClaims
-	NotificationType string              `json:"notificationType"`
-	Subtype          string              `json:"subtype"`
-	NotificationUUID string              `json:"notificationUUID"`
-	Version          string              `json:"version"`
-	Summary          NotificationSummary `json:"summary"`
-	Data             NotificationData    `json:"data"`
+	NotificationType      string                `json:"notificationType"`
+	Subtype               string                `json:"subtype"`
+	NotificationUUID      string                `json:"notificationUUID"`
+	Version               string                `json:"version"`
+	SignedDate            int                   `json:"signedDate"`
+	Summary               NotificationSummary   `json:"summary,omitempty"`
+	Data                  NotificationData      `json:"data,omitempty"`
+	ExternalPurchaseToken ExternalPurchaseToken `json:"externalPurchaseToken,omitempty"`
+}
+
+type ExternalPurchaseToken struct {
+	ExternalPurchaseId string `json:"externalPurchaseId"`
+	TokenCreationDate  int    `json:"tokenCreationDate"`
+	AppAppleId         string `json:"appAppleId"`
+	BundleId           string `json:"bundleId"`
 }
 
 type NotificationSummary struct {
@@ -41,29 +51,31 @@ type NotificationSummary struct {
 }
 
 type NotificationData struct {
-	AppAppleId            int    `json:"appAppleId"`
-	BundleId              string `json:"bundleId"`
-	BundleVersion         string `json:"bundleVersion"`
-	Environment           string `json:"environment"`
-	SignedRenewalInfo     string `json:"signedRenewalInfo"`
-	SignedTransactionInfo string `json:"signedTransactionInfo"`
-	Status                int32  `json:"status"`
+	AppAppleId               int    `json:"appAppleId"`
+	BundleId                 string `json:"bundleId"`
+	BundleVersion            string `json:"bundleVersion"`
+	Environment              string `json:"environment"`
+	SignedRenewalInfo        string `json:"signedRenewalInfo"`
+	SignedTransactionInfo    string `json:"signedTransactionInfo"`
+	Status                   int32  `json:"status"`
+	ConsumptionRequestReason string `json:"consumptionRequestReason,omitempty"`
 }
 
 type TransactionInfo struct {
 	jwt.StandardClaims
 	AppAccountToken             string `json:"appAccountToken"`
-	Currency                    string `json:"currency,omitempty"`
 	BundleId                    string `json:"bundleId"`
+	Currency                    string `json:"currency,omitempty"`
 	Environment                 string `json:"environment"`
 	ExpiresDate                 int    `json:"expiresDate"`
 	InAppOwnershipType          string `json:"inAppOwnershipType"`
 	IsUpgraded                  bool   `json:"isUpgraded"`
+	OfferDiscountType           string `json:"offerDiscountType"`
 	OfferIdentifier             string `json:"offerIdentifier"`
 	OfferType                   int32  `json:"offerType"`
 	OriginalPurchaseDate        int    `json:"originalPurchaseDate"`
 	OriginalTransactionId       string `json:"originalTransactionId"`
-	Price                       string `json:"price,omitempty"`
+	Price                       int64  `json:"price,omitempty"`
 	ProductId                   string `json:"productId"`
 	PurchaseDate                int    `json:"purchaseDate"`
 	Quantity                    int32  `json:"quantity"`

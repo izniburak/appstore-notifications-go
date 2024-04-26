@@ -14,6 +14,7 @@ import (
 func New(payload string, appleRootCert string) *AppStoreServerNotification {
 	asn := &AppStoreServerNotification{}
 	asn.IsValid = false
+	asn.IsTest = false
 	asn.appleRootCert = appleRootCert
 	asn.parseJwtSignedPayload(payload)
 	return asn
@@ -130,6 +131,12 @@ func (asn *AppStoreServerNotification) parseJwtSignedPayload(payload string) {
 		panic(err)
 	}
 	asn.Payload = notificationPayload
+	asn.IsTest = asn.Payload.NotificationType == "TEST"
+
+	if asn.IsTest {
+		asn.IsValid = true
+		return
+	}
 
 	// transaction info
 	transactionInfo := &TransactionInfo{}
