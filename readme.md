@@ -40,9 +40,14 @@ func main() {
 		panic("Apple Root Cert not valid")
 	}
 
-	appStoreServerNotification := appstore.New(request.SignedPayload, rootCert)
-	fmt.Printf("App Store Server Notification is valid?: %t\n", appStoreServerNotification.IsValid)
-	fmt.Printf("Product Id: %s\n", appStoreServerNotification.TransactionInfo.ProductId)
+	asn, err := appstore.New(request.SignedPayload, rootCert)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("App Store Server Notification is valid?: %t\n", asn.IsValid)
+	if asn.TransactionInfo != nil {
+		fmt.Printf("Product Id: %s\n", asn.TransactionInfo.ProductId)
+	}
 }
 ```
 You can access the all data in the payload by using one of the 4 params in instance of the `AppStoreServerNotification`:
@@ -51,6 +56,9 @@ You can access the all data in the payload by using one of the 4 params in insta
 - _instance_***.TransactionInfo***: Access the [Transaction Info](https://developer.apple.com/documentation/appstoreservernotifications/jwstransactiondecodedpayload).
 - _instance_***.RenewalInfo***: Access the [Renewal Info](https://developer.apple.com/documentation/appstoreservernotifications/jwsrenewalinfodecodedpayload).
 - _instance_***.IsValid***: Check the payload parsed and verified successfully.
+- _instance_***.IsTest***: True when `notificationType` is `TEST`. In this case `TransactionInfo` and `RenewalInfo` will be `nil`.
+
+`New` returns an error for any malformed or unexpected payload (invalid JWT, short `x5c` chain, certificate verification failure, etc.). `TransactionInfo` and `RenewalInfo` are `nil` for notification types that don't carry signed inner JWTs (e.g. `TEST`, `EXTERNAL_PURCHASE_TOKEN`, `RENEWAL_EXTENDED`).
 
 ## Contributing
 

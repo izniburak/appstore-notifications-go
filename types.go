@@ -1,6 +1,6 @@
 package v2
 
-import "github.com/golang-jwt/jwt"
+import "github.com/golang-jwt/jwt/v5"
 
 type AppStoreServerNotification struct {
 	appleRootCert   string
@@ -21,7 +21,7 @@ type NotificationHeader struct {
 }
 
 type NotificationPayload struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	NotificationType      string                `json:"notificationType"`
 	Subtype               string                `json:"subtype"`
 	NotificationUUID      string                `json:"notificationUUID"`
@@ -62,7 +62,7 @@ type NotificationData struct {
 }
 
 type TransactionInfo struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	AppAccountToken             string `json:"appAccountToken"`
 	BundleId                    string `json:"bundleId"`
 	Currency                    string `json:"currency,omitempty"`
@@ -92,7 +92,7 @@ type TransactionInfo struct {
 }
 
 type RenewalInfo struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	AutoRenewProductId          string `json:"autoRenewProductId"`
 	AutoRenewStatus             int32  `json:"autoRenewStatus"`
 	Environment                 string `json:"environment"`

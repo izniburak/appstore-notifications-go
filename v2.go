@@ -6,38 +6,43 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-func New(payload string, appleRootCert string) *AppStoreServerNotification {
+func New(payload string, appleRootCert string) (*AppStoreServerNotification, error) {
 	asn := &AppStoreServerNotification{}
 	asn.IsValid = false
 	asn.IsTest = false
 	asn.appleRootCert = appleRootCert
-	asn.parseJwtSignedPayload(payload)
-	return asn
+	if err := asn.parseJwtSignedPayload(payload); err != nil {
+		return asn, err
+	}
+	return asn, nil
 }
 
 func (asn *AppStoreServerNotification) extractHeaderByIndex(payload string, index int) ([]byte, error) {
-	// get header from token
 	payloadArr := strings.Split(payload, ".")
+	if len(payloadArr) < 3 {
+		return nil, errors.New("payload must be a valid JWS token with 3 segments")
+	}
 
-	// convert header to byte
 	headerByte, err := base64.RawStdEncoding.DecodeString(payloadArr[0])
 	if err != nil {
 		return nil, err
 	}
 
-	// bind byte to header structure
 	var header NotificationHeader
-	err = json.Unmarshal(headerByte, &header)
-	if err != nil {
+	if err = json.Unmarshal(headerByte, &header); err != nil {
 		return nil, err
 	}
 
-	// decode x.509 certificate headers to byte
+	if len(header.X5c) <= index {
+		return nil, fmt.Errorf("x5c header has %d entries, need at least %d", len(header.X5c), index+1)
+	}
+
 	certByte, err := base64.StdEncoding.DecodeString(header.X5c[index])
 	if err != nil {
 		return nil, err
@@ -47,16 +52,13 @@ func (asn *AppStoreServerNotification) extractHeaderByIndex(payload string, inde
 }
 
 func (asn *AppStoreServerNotification) verifyCertificate(certByte []byte, intermediateCert []byte) error {
-	// create certificate pool
 	roots := x509.NewCertPool()
 
-	// parse and append apple root certificate to the pool
 	ok := roots.AppendCertsFromPEM([]byte(asn.appleRootCert))
 	if !ok {
 		return errors.New("root certificate couldn't be parsed")
 	}
 
-	// parse and append intermediate x5c certificate
 	interCert, err := x509.ParseCertificate(intermediateCert)
 	if err != nil {
 		return errors.New("intermediate certificate couldn't be parsed")
@@ -64,13 +66,11 @@ func (asn *AppStoreServerNotification) verifyCertificate(certByte []byte, interm
 	intermediate := x509.NewCertPool()
 	intermediate.AddCert(interCert)
 
-	// parse x5c certificate
 	cert, err := x509.ParseCertificate(certByte)
 	if err != nil {
 		return err
 	}
 
-	// verify X5c certificate using app store certificate resides in opts
 	opts := x509.VerifyOptions{
 		Roots:         roots,
 		Intermediates: intermediate,
@@ -83,19 +83,16 @@ func (asn *AppStoreServerNotification) verifyCertificate(certByte []byte, interm
 }
 
 func (asn *AppStoreServerNotification) extractPublicKeyFromPayload(payload string) (*ecdsa.PublicKey, error) {
-	// get certificate from X5c[0] header
 	certStr, err := asn.extractHeaderByIndex(payload, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	// parse certificate
 	cert, err := x509.ParseCertificate(certStr)
 	if err != nil {
 		return nil, err
 	}
 
-	// get public key
 	switch pk := cert.PublicKey.(type) {
 	case *ecdsa.PublicKey:
 		return pk, nil
@@ -104,62 +101,53 @@ func (asn *AppStoreServerNotification) extractPublicKeyFromPayload(payload strin
 	}
 }
 
-func (asn *AppStoreServerNotification) parseJwtSignedPayload(payload string) {
-	// get root certificate from x5c header
+func (asn *AppStoreServerNotification) parseJwtSignedPayload(payload string) error {
 	rootCertStr, err := asn.extractHeaderByIndex(payload, 2)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	// get intermediate certificate from x5c header
 	intermediateCertStr, err := asn.extractHeaderByIndex(payload, 1)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	// verify certificates
 	if err = asn.verifyCertificate(rootCertStr, intermediateCertStr); err != nil {
-		panic(err)
+		return err
 	}
 
-	// payload data
 	notificationPayload := &NotificationPayload{}
 	_, err = jwt.ParseWithClaims(payload, notificationPayload, func(token *jwt.Token) (interface{}, error) {
 		return asn.extractPublicKeyFromPayload(payload)
 	})
 	if err != nil {
-		panic(err)
+		return err
 	}
 	asn.Payload = notificationPayload
 	asn.IsTest = asn.Payload.NotificationType == "TEST"
 
-	if asn.IsTest {
-		asn.IsValid = true
-		return
+	if sti := asn.Payload.Data.SignedTransactionInfo; sti != "" {
+		transactionInfo := &TransactionInfo{}
+		_, err = jwt.ParseWithClaims(sti, transactionInfo, func(token *jwt.Token) (interface{}, error) {
+			return asn.extractPublicKeyFromPayload(sti)
+		})
+		if err != nil {
+			return fmt.Errorf("parse signedTransactionInfo: %w", err)
+		}
+		asn.TransactionInfo = transactionInfo
 	}
 
-	// transaction info
-	transactionInfo := &TransactionInfo{}
-	payload = asn.Payload.Data.SignedTransactionInfo
-	_, err = jwt.ParseWithClaims(payload, transactionInfo, func(token *jwt.Token) (interface{}, error) {
-		return asn.extractPublicKeyFromPayload(payload)
-	})
-	if err != nil {
-		panic(err)
+	if sri := asn.Payload.Data.SignedRenewalInfo; sri != "" {
+		renewalInfo := &RenewalInfo{}
+		_, err = jwt.ParseWithClaims(sri, renewalInfo, func(token *jwt.Token) (interface{}, error) {
+			return asn.extractPublicKeyFromPayload(sri)
+		})
+		if err != nil {
+			return fmt.Errorf("parse signedRenewalInfo: %w", err)
+		}
+		asn.RenewalInfo = renewalInfo
 	}
-	asn.TransactionInfo = transactionInfo
 
-	// renewal info
-	renewalInfo := &RenewalInfo{}
-	payload = asn.Payload.Data.SignedRenewalInfo
-	_, err = jwt.ParseWithClaims(payload, renewalInfo, func(token *jwt.Token) (interface{}, error) {
-		return asn.extractPublicKeyFromPayload(payload)
-	})
-	if err != nil {
-		panic(err)
-	}
-	asn.RenewalInfo = renewalInfo
-
-	// valid request
 	asn.IsValid = true
+	return nil
 }
