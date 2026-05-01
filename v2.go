@@ -13,12 +13,9 @@ import (
 )
 
 func New(payload string, appleRootCert string) (*AppStoreServerNotification, error) {
-	asn := &AppStoreServerNotification{}
-	asn.IsValid = false
-	asn.IsTest = false
-	asn.appleRootCert = appleRootCert
+	asn := &AppStoreServerNotification{appleRootCert: appleRootCert}
 	if err := asn.parseJwtSignedPayload(payload); err != nil {
-		return asn, err
+		return nil, err
 	}
 	return asn, nil
 }
@@ -61,7 +58,7 @@ func (asn *AppStoreServerNotification) verifyCertificate(certByte []byte, interm
 
 	interCert, err := x509.ParseCertificate(intermediateCert)
 	if err != nil {
-		return errors.New("intermediate certificate couldn't be parsed")
+		return fmt.Errorf("intermediate certificate: %w", err)
 	}
 	intermediate := x509.NewCertPool()
 	intermediate.AddCert(interCert)
