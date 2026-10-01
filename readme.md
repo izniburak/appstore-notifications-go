@@ -18,7 +18,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	appstore "github.com/izniburak/appstore-notifications-go"
 )
 
