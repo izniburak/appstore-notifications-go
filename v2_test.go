@@ -146,6 +146,7 @@ func TestNewParsesNestedSignedPayloads(t *testing.T) {
 		asn.TransactionInfo.RevocationPercentage != 25000 ||
 		asn.TransactionInfo.AdvancedCommerceInfo == nil ||
 		len(asn.TransactionInfo.AdvancedCommerceInfo.Items) == 0 ||
+		len(asn.TransactionInfo.AdvancedCommerceInfo.Items[0].Refunds) == 0 ||
 		asn.TransactionInfo.AdvancedCommerceInfo.Items[0].Refunds[0].RefundAmount != 100 ||
 		asn.TransactionInfo.CommitmentInfo == nil ||
 		asn.TransactionInfo.CommitmentInfo.TotalBillingPeriods != 12 {
