@@ -186,7 +186,7 @@ func TestNewParsesNotificationVariants(t *testing.T) {
 			payload: &NotificationPayload{
 				NotificationType: "EXTERNAL_PURCHASE_TOKEN",
 				Subtype:          "CREATED",
-				ExternalPurchaseToken: &ExternalPurchaseToken{
+				ExternalPurchaseToken: ExternalPurchaseToken{
 					ExternalPurchaseId:  "external-id",
 					TokenCreationDate:   1700000000000,
 					AppAppleId:          123456789,
@@ -197,7 +197,7 @@ func TestNewParsesNotificationVariants(t *testing.T) {
 			},
 			check: func(t *testing.T, asn *AppStoreServerNotification) {
 				token := asn.Payload.ExternalPurchaseToken
-				if token == nil || token.TokenType != "ACQUISITION" || token.TokenExpirationDate != 1700003600000 {
+				if token.TokenType != "ACQUISITION" || token.TokenExpirationDate != 1700003600000 {
 					t.Fatalf("external purchase token fields were not parsed: %#v", token)
 				}
 			},

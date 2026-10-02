@@ -30,7 +30,7 @@ type NotificationPayload struct {
 	SignedDate            int64                  `json:"signedDate"`
 	Summary               NotificationSummary    `json:"summary,omitempty"`
 	Data                  NotificationData       `json:"data,omitempty"`
-	ExternalPurchaseToken *ExternalPurchaseToken `json:"externalPurchaseToken,omitempty"`
+	ExternalPurchaseToken ExternalPurchaseToken  `json:"externalPurchaseToken,omitempty"`
 	AppData               *AppData               `json:"appData,omitempty"`
 }
 
