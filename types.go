@@ -23,13 +23,13 @@ type NotificationHeader struct {
 
 type NotificationPayload struct {
 	jwt.RegisteredClaims
-	NotificationType      string                `json:"notificationType"`
-	Subtype               string                `json:"subtype"`
-	NotificationUUID      string                `json:"notificationUUID"`
-	Version               string                `json:"version"`
-	SignedDate            int64                 `json:"signedDate"`
-	Summary               NotificationSummary   `json:"summary,omitempty"`
-	Data                  NotificationData      `json:"data,omitempty"`
+	NotificationType      string                 `json:"notificationType"`
+	Subtype               string                 `json:"subtype"`
+	NotificationUUID      string                 `json:"notificationUUID"`
+	Version               string                 `json:"version"`
+	SignedDate            int64                  `json:"signedDate"`
+	Summary               NotificationSummary    `json:"summary,omitempty"`
+	Data                  NotificationData       `json:"data,omitempty"`
 	ExternalPurchaseToken *ExternalPurchaseToken `json:"externalPurchaseToken,omitempty"`
 	AppData               *AppData               `json:"appData,omitempty"`
 }
@@ -111,54 +111,54 @@ type TransactionInfo struct {
 
 type RenewalInfo struct {
 	jwt.RegisteredClaims
-	AutoRenewProductId          string                          `json:"autoRenewProductId"`
-	AutoRenewStatus             int32                           `json:"autoRenewStatus"`
-	Environment                 string                          `json:"environment"`
-	Currency                    string                          `json:"currency"`
-	EligibleWinBackOfferIds     []string                        `json:"eligibleWinBackOfferIds"`
-	ExpirationIntent            int32                           `json:"expirationIntent"`
-	GracePeriodExpiresDate      int64                           `json:"gracePeriodExpiresDate"`
-	IsInBillingRetryPeriod      bool                            `json:"isInBillingRetryPeriod"`
-	OfferDiscountType           string                          `json:"offerDiscountType"`
-	OfferIdentifier             string                          `json:"offerIdentifier"`
-	OfferType                   int32                           `json:"offerType"`
-	OriginalTransactionId       string                          `json:"originalTransactionId"`
-	PriceIncreaseStatus         int32                           `json:"priceIncreaseStatus"`
-	ProductId                   string                          `json:"productId"`
-	RecentSubscriptionStartDate int64                           `json:"recentSubscriptionStartDate"`
-	RenewalDate                 int64                           `json:"renewalDate"`
-	RenewalPrice                int64                           `json:"renewalPrice"`
-	SignedDate                  int64                           `json:"signedDate"`
-	AppAccountToken             string                          `json:"appAccountToken"`
-	AppTransactionId            string                          `json:"appTransactionId"`
-	OfferPeriod                 string                          `json:"offerPeriod"`
-	AdvancedCommerceInfo        *AdvancedCommerceRenewalInfo    `json:"advancedCommerceInfo"`
-	CommitmentInfo              *RenewalCommitmentInfo          `json:"commitmentInfo"`
-	RenewalBillingPlanType      string                          `json:"renewalBillingPlanType"`
+	AutoRenewProductId          string                       `json:"autoRenewProductId"`
+	AutoRenewStatus             int32                        `json:"autoRenewStatus"`
+	Environment                 string                       `json:"environment"`
+	Currency                    string                       `json:"currency"`
+	EligibleWinBackOfferIds     []string                     `json:"eligibleWinBackOfferIds"`
+	ExpirationIntent            int32                        `json:"expirationIntent"`
+	GracePeriodExpiresDate      int64                        `json:"gracePeriodExpiresDate"`
+	IsInBillingRetryPeriod      bool                         `json:"isInBillingRetryPeriod"`
+	OfferDiscountType           string                       `json:"offerDiscountType"`
+	OfferIdentifier             string                       `json:"offerIdentifier"`
+	OfferType                   int32                        `json:"offerType"`
+	OriginalTransactionId       string                       `json:"originalTransactionId"`
+	PriceIncreaseStatus         int32                        `json:"priceIncreaseStatus"`
+	ProductId                   string                       `json:"productId"`
+	RecentSubscriptionStartDate int64                        `json:"recentSubscriptionStartDate"`
+	RenewalDate                 int64                        `json:"renewalDate"`
+	RenewalPrice                int64                        `json:"renewalPrice"`
+	SignedDate                  int64                        `json:"signedDate"`
+	AppAccountToken             string                       `json:"appAccountToken"`
+	AppTransactionId            string                       `json:"appTransactionId"`
+	OfferPeriod                 string                       `json:"offerPeriod"`
+	AdvancedCommerceInfo        *AdvancedCommerceRenewalInfo `json:"advancedCommerceInfo"`
+	CommitmentInfo              *RenewalCommitmentInfo       `json:"commitmentInfo"`
+	RenewalBillingPlanType      string                       `json:"renewalBillingPlanType"`
 }
 
 type AppTransactionInfo struct {
 	jwt.RegisteredClaims
-	ReceiptType                 string `json:"receiptType"`
-	AppAppleId                  int64  `json:"appAppleId"`
-	BundleId                    string `json:"bundleId"`
-	ApplicationVersion          string `json:"applicationVersion"`
-	VersionExternalIdentifier   int64  `json:"versionExternalIdentifier"`
-	ReceiptCreationDate         int64  `json:"receiptCreationDate"`
-	OriginalPurchaseDate        int64  `json:"originalPurchaseDate"`
-	OriginalApplicationVersion  string `json:"originalApplicationVersion"`
-	DeviceVerification          string `json:"deviceVerification"`
-	DeviceVerificationNonce     string `json:"deviceVerificationNonce"`
-	PreorderDate                int64  `json:"preorderDate"`
-	AppTransactionId            string `json:"appTransactionId"`
-	OriginalPlatform            string `json:"originalPlatform"`
+	ReceiptType                string `json:"receiptType"`
+	AppAppleId                 int64  `json:"appAppleId"`
+	BundleId                   string `json:"bundleId"`
+	ApplicationVersion         string `json:"applicationVersion"`
+	VersionExternalIdentifier  int64  `json:"versionExternalIdentifier"`
+	ReceiptCreationDate        int64  `json:"receiptCreationDate"`
+	OriginalPurchaseDate       int64  `json:"originalPurchaseDate"`
+	OriginalApplicationVersion string `json:"originalApplicationVersion"`
+	DeviceVerification         string `json:"deviceVerification"`
+	DeviceVerificationNonce    string `json:"deviceVerificationNonce"`
+	PreorderDate               int64  `json:"preorderDate"`
+	AppTransactionId           string `json:"appTransactionId"`
+	OriginalPlatform           string `json:"originalPlatform"`
 }
 
 type TransactionCommitmentInfo struct {
-	BillingPeriodNumber  int32 `json:"billingPeriodNumber"`
+	BillingPeriodNumber   int32 `json:"billingPeriodNumber"`
 	CommitmentExpiresDate int64 `json:"commitmentExpiresDate"`
-	CommitmentPrice      int64 `json:"commitmentPrice"`
-	TotalBillingPeriods  int32 `json:"totalBillingPeriods"`
+	CommitmentPrice       int64 `json:"commitmentPrice"`
+	TotalBillingPeriods   int32 `json:"totalBillingPeriods"`
 }
 
 type RenewalCommitmentInfo struct {
@@ -189,24 +189,24 @@ type AdvancedCommerceRefund struct {
 }
 
 type AdvancedCommerceTransactionItem struct {
-	SKU         string                   `json:"SKU"`
-	Description string                   `json:"description"`
-	DisplayName string                   `json:"displayName"`
-	Offer       *AdvancedCommerceOffer   `json:"offer"`
-	Price       int64                    `json:"price"`
-	Refunds     []AdvancedCommerceRefund `json:"refunds"`
-	RevocationDate int64                 `json:"revocationDate"`
+	SKU            string                   `json:"SKU"`
+	Description    string                   `json:"description"`
+	DisplayName    string                   `json:"displayName"`
+	Offer          *AdvancedCommerceOffer   `json:"offer"`
+	Price          int64                    `json:"price"`
+	Refunds        []AdvancedCommerceRefund `json:"refunds"`
+	RevocationDate int64                    `json:"revocationDate"`
 }
 
 type AdvancedCommerceTransactionInfo struct {
-	Descriptors      *AdvancedCommerceDescriptors       `json:"descriptors"`
-	EstimatedTax     int64                              `json:"estimatedTax"`
-	Items            []AdvancedCommerceTransactionItem `json:"items"`
-	Period           string                             `json:"period"`
+	Descriptors        *AdvancedCommerceDescriptors      `json:"descriptors"`
+	EstimatedTax       int64                             `json:"estimatedTax"`
+	Items              []AdvancedCommerceTransactionItem `json:"items"`
+	Period             string                            `json:"period"`
 	RequestReferenceId string                            `json:"requestReferenceId"`
-	TaxCode          string                             `json:"taxCode"`
-	TaxExclusivePrice int64                             `json:"taxExclusivePrice"`
-	TaxRate          string                             `json:"taxRate"`
+	TaxCode            string                            `json:"taxCode"`
+	TaxExclusivePrice  int64                             `json:"taxExclusivePrice"`
+	TaxRate            string                            `json:"taxRate"`
 }
 
 type AdvancedCommercePriceIncreaseInfo struct {
@@ -216,19 +216,19 @@ type AdvancedCommercePriceIncreaseInfo struct {
 }
 
 type AdvancedCommerceRenewalItem struct {
-	SKU              string                            `json:"SKU"`
-	Description      string                            `json:"description"`
-	DisplayName      string                            `json:"displayName"`
-	Offer            *AdvancedCommerceOffer            `json:"offer"`
-	Price            int64                             `json:"price"`
+	SKU               string                             `json:"SKU"`
+	Description       string                             `json:"description"`
+	DisplayName       string                             `json:"displayName"`
+	Offer             *AdvancedCommerceOffer             `json:"offer"`
+	Price             int64                              `json:"price"`
 	PriceIncreaseInfo *AdvancedCommercePriceIncreaseInfo `json:"priceIncreaseInfo"`
 }
 
 type AdvancedCommerceRenewalInfo struct {
-	ConsistencyToken  string                          `json:"consistencyToken"`
-	Descriptors       *AdvancedCommerceDescriptors   `json:"descriptors"`
-	Items             []AdvancedCommerceRenewalItem  `json:"items"`
-	Period            string                          `json:"period"`
-	RequestReferenceId string                         `json:"requestReferenceId"`
-	TaxCode           string                          `json:"taxCode"`
+	ConsistencyToken   string                        `json:"consistencyToken"`
+	Descriptors        *AdvancedCommerceDescriptors  `json:"descriptors"`
+	Items              []AdvancedCommerceRenewalItem `json:"items"`
+	Period             string                        `json:"period"`
+	RequestReferenceId string                        `json:"requestReferenceId"`
+	TaxCode            string                        `json:"taxCode"`
 }

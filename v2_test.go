@@ -79,8 +79,8 @@ func TestNewParsesNestedSignedPayloads(t *testing.T) {
 					RefundType:   "FULL",
 				}},
 			}},
-			Period: "P1M",
-			TaxCode: "tax-code",
+			Period:            "P1M",
+			TaxCode:           "tax-code",
 			TaxExclusivePrice: 975,
 		},
 		BillingPlanType: "MONTHLY",
@@ -286,9 +286,9 @@ func TestNewRejectsInvalidSignedPayloads(t *testing.T) {
 			root:    otherFixture.rootPEM,
 		},
 		{
-			name: "untrusted nested certificate",
+			name:    "untrusted nested certificate",
 			payload: fixture.sign(t, &untrustedPayload, jwt.SigningMethodES256, fixture.leafKey),
-			root: fixture.rootPEM,
+			root:    fixture.rootPEM,
 		},
 		{
 			name:    "unsupported algorithm",
@@ -347,8 +347,8 @@ func TestMalformedPayloads(t *testing.T) {
 }
 
 type testSigningFixture struct {
-	rootPEM  string
-	leafKey  *ecdsa.PrivateKey
+	rootPEM   string
+	leafKey   *ecdsa.PrivateKey
 	certChain []string
 }
 
