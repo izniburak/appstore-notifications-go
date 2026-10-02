@@ -138,17 +138,27 @@ func TestNewParsesNestedSignedPayloads(t *testing.T) {
 	if !asn.IsValid || asn.IsTest {
 		t.Fatalf("unexpected notification state: IsValid=%t IsTest=%t", asn.IsValid, asn.IsTest)
 	}
+	if asn.Payload.Data.AppAppleId != 123456789 {
+		t.Fatalf("notification appAppleId was not parsed: %d", asn.Payload.Data.AppAppleId)
+	}
 	if asn.TransactionInfo == nil || asn.TransactionInfo.ProductId != "product" ||
 		asn.TransactionInfo.AppTransactionId != "app-transaction" ||
 		asn.TransactionInfo.RevocationPercentage != 25000 ||
+		asn.TransactionInfo.AdvancedCommerceInfo == nil ||
+		len(asn.TransactionInfo.AdvancedCommerceInfo.Items) == 0 ||
 		asn.TransactionInfo.AdvancedCommerceInfo.Items[0].Refunds[0].RefundAmount != 100 ||
+		asn.TransactionInfo.CommitmentInfo == nil ||
 		asn.TransactionInfo.CommitmentInfo.TotalBillingPeriods != 12 {
 		t.Fatalf("transaction fields were not parsed: %#v", asn.TransactionInfo)
 	}
 	if asn.RenewalInfo == nil || len(asn.RenewalInfo.EligibleWinBackOfferIds) != 2 ||
 		asn.RenewalInfo.EligibleWinBackOfferIds[1] != "offer-two" ||
 		asn.RenewalInfo.AppAccountToken != "account-token" ||
+		asn.RenewalInfo.AdvancedCommerceInfo == nil ||
+		len(asn.RenewalInfo.AdvancedCommerceInfo.Items) == 0 ||
+		asn.RenewalInfo.AdvancedCommerceInfo.Items[0].PriceIncreaseInfo == nil ||
 		asn.RenewalInfo.AdvancedCommerceInfo.Items[0].PriceIncreaseInfo.Status != "SCHEDULED" ||
+		asn.RenewalInfo.CommitmentInfo == nil ||
 		asn.RenewalInfo.CommitmentInfo.CommitmentRenewalPrice != 1200 {
 		t.Fatalf("renewal fields were not parsed: %#v", asn.RenewalInfo)
 	}
@@ -215,6 +225,7 @@ func TestNewParsesNotificationVariants(t *testing.T) {
 			},
 			check: func(t *testing.T, asn *AppStoreServerNotification) {
 				if asn.Payload.AppData == nil || asn.AppTransactionInfo == nil ||
+					asn.Payload.AppData.AppAppleId != 123456789 ||
 					asn.AppTransactionInfo.AppTransactionId != "app-transaction" {
 					t.Fatalf("app data was not parsed: %#v", asn)
 				}

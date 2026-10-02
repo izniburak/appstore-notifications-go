@@ -23,15 +23,15 @@ type NotificationHeader struct {
 
 type NotificationPayload struct {
 	jwt.RegisteredClaims
-	NotificationType      string                 `json:"notificationType"`
-	Subtype               string                 `json:"subtype"`
-	NotificationUUID      string                 `json:"notificationUUID"`
-	Version               string                 `json:"version"`
-	SignedDate            int64                  `json:"signedDate"`
-	Summary               NotificationSummary    `json:"summary,omitempty"`
-	Data                  NotificationData       `json:"data,omitempty"`
-	ExternalPurchaseToken ExternalPurchaseToken  `json:"externalPurchaseToken,omitempty"`
-	AppData               *AppData               `json:"appData,omitempty"`
+	NotificationType      string                `json:"notificationType"`
+	Subtype               string                `json:"subtype"`
+	NotificationUUID      string                `json:"notificationUUID"`
+	Version               string                `json:"version"`
+	SignedDate            int64                 `json:"signedDate"`
+	Summary               NotificationSummary   `json:"summary,omitempty"`
+	Data                  NotificationData      `json:"data,omitempty"`
+	ExternalPurchaseToken ExternalPurchaseToken `json:"externalPurchaseToken,omitempty"`
+	AppData               *AppData              `json:"appData,omitempty"`
 }
 
 type ExternalPurchaseToken struct {
