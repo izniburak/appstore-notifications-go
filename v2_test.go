@@ -284,6 +284,9 @@ func TestNewRejectsInvalidSignedPayloads(t *testing.T) {
 	untrustedPayload := *validPayload
 	untrustedPayload.Data.SignedTransactionInfo = untrustedTransaction
 
+	noLeafExtension := newTestSigningFixtureWithExtensions(t, false, true)
+	noIntermediateExtension := newTestSigningFixtureWithExtensions(t, true, false)
+
 	wrongAlgorithm := fixture.sign(t, &NotificationPayload{NotificationType: "TEST"}, jwt.SigningMethodHS256, []byte("secret"))
 	badSignature := fixture.sign(t, &NotificationPayload{NotificationType: "TEST"}, jwt.SigningMethodES256, newTestKey(t))
 
@@ -301,6 +304,16 @@ func TestNewRejectsInvalidSignedPayloads(t *testing.T) {
 			name:    "untrusted nested certificate",
 			payload: fixture.sign(t, &untrustedPayload, jwt.SigningMethodES256, fixture.leafKey),
 			root:    fixture.rootPEM,
+		},
+		{
+			name:    "missing leaf extension",
+			payload: noLeafExtension.sign(t, &NotificationPayload{NotificationType: "TEST"}, jwt.SigningMethodES256, noLeafExtension.leafKey),
+			root:    noLeafExtension.rootPEM,
+		},
+		{
+			name:    "missing intermediate extension",
+			payload: noIntermediateExtension.sign(t, &NotificationPayload{NotificationType: "TEST"}, jwt.SigningMethodES256, noIntermediateExtension.leafKey),
+			root:    noIntermediateExtension.rootPEM,
 		},
 		{
 			name:    "unsupported algorithm",
@@ -366,6 +379,18 @@ type testSigningFixture struct {
 
 func newTestSigningFixture(t *testing.T) *testSigningFixture {
 	t.Helper()
+	return newTestSigningFixtureWithExtensions(t, true, true)
+}
+
+func newTestSigningFixtureWithExtensions(t *testing.T, leafExtension, intermediateExtension bool) *testSigningFixture {
+	t.Helper()
+	var leafExtensions, intermediateExtensions []pkix.Extension
+	if leafExtension {
+		leafExtensions = []pkix.Extension{{Id: appleLeafMarkerOID, Value: []byte{0x05, 0x00}}}
+	}
+	if intermediateExtension {
+		intermediateExtensions = []pkix.Extension{{Id: appleIntermediateMarkerOID, Value: []byte{0x05, 0x00}}}
+	}
 	now := time.Now()
 
 	rootKey := newTestKey(t)
@@ -392,6 +417,7 @@ func newTestSigningFixture(t *testing.T) *testSigningFixture {
 		IsCA:                  true,
 		BasicConstraintsValid: true,
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		ExtraExtensions:       intermediateExtensions,
 	}
 	intermediateDER, err := x509.CreateCertificate(rand.Reader, intermediateTemplate, rootTemplate, &intermediateKey.PublicKey, rootKey)
 	if err != nil {
@@ -406,6 +432,7 @@ func newTestSigningFixture(t *testing.T) *testSigningFixture {
 		NotAfter:              now.Add(time.Hour),
 		BasicConstraintsValid: true,
 		KeyUsage:              x509.KeyUsageDigitalSignature,
+		ExtraExtensions:       leafExtensions,
 	}
 	leafDER, err := x509.CreateCertificate(rand.Reader, leafTemplate, intermediateTemplate, &leafKey.PublicKey, intermediateKey)
 	if err != nil {

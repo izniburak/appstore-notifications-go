@@ -152,6 +152,7 @@ type AppTransactionInfo struct {
 	PreorderDate               int64  `json:"preorderDate"`
 	AppTransactionId           string `json:"appTransactionId"`
 	OriginalPlatform           string `json:"originalPlatform"`
+	StoreType                  string `json:"storeType"`
 }
 
 type TransactionCommitmentInfo struct {

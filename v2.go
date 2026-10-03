@@ -3,6 +3,7 @@ package v2
 import (
 	"crypto/ecdsa"
 	"crypto/x509"
+	"encoding/asn1"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -11,6 +12,20 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 )
+
+var (
+	appleLeafMarkerOID         = asn1.ObjectIdentifier{1, 2, 840, 113635, 100, 6, 11, 1}
+	appleIntermediateMarkerOID = asn1.ObjectIdentifier{1, 2, 840, 113635, 100, 6, 2, 1}
+)
+
+func hasExtension(cert *x509.Certificate, oid asn1.ObjectIdentifier) bool {
+	for _, ext := range cert.Extensions {
+		if ext.Id.Equal(oid) {
+			return true
+		}
+	}
+	return false
+}
 
 func New(payload string, appleRootCert string) (*AppStoreServerNotification, error) {
 	asn := &AppStoreServerNotification{appleRootCert: appleRootCert}
@@ -74,11 +89,19 @@ func (asn *AppStoreServerNotification) verifyCertificate(cert *x509.Certificate,
 		Intermediates: intermediate,
 		KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 	}
-	if _, err := cert.Verify(opts); err != nil {
+	chains, err := cert.Verify(opts)
+	if err != nil {
 		return fmt.Errorf("verify certificate chain: %w", err)
 	}
 
-	return nil
+	for _, verified := range chains {
+		if len(verified) >= 3 &&
+			hasExtension(verified[0], appleLeafMarkerOID) &&
+			hasExtension(verified[1], appleIntermediateMarkerOID) {
+			return nil
+		}
+	}
+	return errors.New("certificate chain is missing required App Store extensions")
 }
 
 func (asn *AppStoreServerNotification) parseSignedJWT(payload string, claims jwt.Claims) error {
