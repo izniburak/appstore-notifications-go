@@ -49,15 +49,18 @@ func main() {
 	}
 }
 ```
-You can access the all data in the payload by using one of the 4 params in instance of the `AppStoreServerNotification`:
+The `AppStoreServerNotification` instance exposes the decoded payload and its signed data:
 
 - _instance_***.Payload***: Access the [Payload](https://developer.apple.com/documentation/appstoreservernotifications/responsebodyv2decodedpayload).
 - _instance_***.TransactionInfo***: Access the [Transaction Info](https://developer.apple.com/documentation/appstoreservernotifications/jwstransactiondecodedpayload).
 - _instance_***.RenewalInfo***: Access the [Renewal Info](https://developer.apple.com/documentation/appstoreservernotifications/jwsrenewalinfodecodedpayload).
+- _instance_***.AppTransactionInfo***: Access the signed app transaction included in `appData`.
 - _instance_***.IsValid***: Check the payload parsed and verified successfully.
 - _instance_***.IsTest***: True when `notificationType` is `TEST`. In this case `TransactionInfo` and `RenewalInfo` will be `nil`.
 
-`New` returns an error for any malformed or unexpected payload (invalid JWT, short `x5c` chain, certificate verification failure, etc.). `TransactionInfo` and `RenewalInfo` are `nil` for notification types that don't carry signed inner JWTs (e.g. `TEST`, `EXTERNAL_PURCHASE_TOKEN`, `RENEWAL_EXTENDED`).
+The decoded models include current notification fields such as `appData`, external purchase token type and expiration, win-back eligibility, revocation and commitment details, and Advanced Commerce data.
+
+`New` returns an error for malformed or unexpected payloads. It verifies the certificate chain and ES256 signature of the outer notification and any included signed transaction, renewal, or app transaction. `TransactionInfo`, `RenewalInfo`, and `AppTransactionInfo` are `nil` when the notification doesn't include the corresponding signed data.
 
 ## Contributing
 
@@ -73,4 +76,3 @@ You can access the all data in the payload by using one of the 4 params in insta
 
 ## License
 The MIT License (MIT) - see [`license.md`](https://github.com//izniburak/appstore-notifications-go/blob/main/license.md) for more details
-

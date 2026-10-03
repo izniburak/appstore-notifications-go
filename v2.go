@@ -3,6 +3,7 @@ package v2
 import (
 	"crypto/ecdsa"
 	"crypto/x509"
+	"encoding/asn1"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -12,6 +13,20 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+var (
+	appleLeafMarkerOID         = asn1.ObjectIdentifier{1, 2, 840, 113635, 100, 6, 11, 1}
+	appleIntermediateMarkerOID = asn1.ObjectIdentifier{1, 2, 840, 113635, 100, 6, 2, 1}
+)
+
+func hasExtension(cert *x509.Certificate, oid asn1.ObjectIdentifier) bool {
+	for _, ext := range cert.Extensions {
+		if ext.Id.Equal(oid) {
+			return true
+		}
+	}
+	return false
+}
+
 func New(payload string, appleRootCert string) (*AppStoreServerNotification, error) {
 	asn := &AppStoreServerNotification{appleRootCert: appleRootCert}
 	if err := asn.parseJwtSignedPayload(payload); err != nil {
@@ -20,13 +35,13 @@ func New(payload string, appleRootCert string) (*AppStoreServerNotification, err
 	return asn, nil
 }
 
-func (asn *AppStoreServerNotification) extractHeaderByIndex(payload string, index int) ([]byte, error) {
-	payloadArr := strings.Split(payload, ".")
-	if len(payloadArr) < 3 {
+func (asn *AppStoreServerNotification) extractCertificateChain(payload string) ([]*x509.Certificate, error) {
+	segments := strings.Split(payload, ".")
+	if len(segments) != 3 {
 		return nil, errors.New("payload must be a valid JWS token with 3 segments")
 	}
 
-	headerByte, err := base64.RawStdEncoding.DecodeString(payloadArr[0])
+	headerByte, err := base64.RawURLEncoding.DecodeString(segments[0])
 	if err != nil {
 		return nil, err
 	}
@@ -36,19 +51,27 @@ func (asn *AppStoreServerNotification) extractHeaderByIndex(payload string, inde
 		return nil, err
 	}
 
-	if len(header.X5c) <= index {
-		return nil, fmt.Errorf("x5c header has %d entries, need at least %d", len(header.X5c), index+1)
+	if len(header.X5c) < 3 {
+		return nil, fmt.Errorf("x5c header has %d entries, need at least 3", len(header.X5c))
 	}
 
-	certByte, err := base64.StdEncoding.DecodeString(header.X5c[index])
-	if err != nil {
-		return nil, err
+	certificates := make([]*x509.Certificate, 0, len(header.X5c))
+	for i, encodedCert := range header.X5c {
+		certByte, err := base64.StdEncoding.DecodeString(encodedCert)
+		if err != nil {
+			return nil, fmt.Errorf("decode x5c certificate %d: %w", i, err)
+		}
+		cert, err := x509.ParseCertificate(certByte)
+		if err != nil {
+			return nil, fmt.Errorf("parse x5c certificate %d: %w", i, err)
+		}
+		certificates = append(certificates, cert)
 	}
 
-	return certByte, nil
+	return certificates, nil
 }
 
-func (asn *AppStoreServerNotification) verifyCertificate(certByte []byte, intermediateCert []byte) error {
+func (asn *AppStoreServerNotification) verifyCertificate(cert *x509.Certificate, chain []*x509.Certificate) error {
 	roots := x509.NewCertPool()
 
 	ok := roots.AppendCertsFromPEM([]byte(asn.appleRootCert))
@@ -56,68 +79,61 @@ func (asn *AppStoreServerNotification) verifyCertificate(certByte []byte, interm
 		return errors.New("root certificate couldn't be parsed")
 	}
 
-	interCert, err := x509.ParseCertificate(intermediateCert)
-	if err != nil {
-		return fmt.Errorf("intermediate certificate: %w", err)
-	}
 	intermediate := x509.NewCertPool()
-	intermediate.AddCert(interCert)
-
-	cert, err := x509.ParseCertificate(certByte)
-	if err != nil {
-		return err
+	for _, cert := range chain {
+		intermediate.AddCert(cert)
 	}
 
 	opts := x509.VerifyOptions{
 		Roots:         roots,
 		Intermediates: intermediate,
+		KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 	}
-	if _, err := cert.Verify(opts); err != nil {
+	chains, err := cert.Verify(opts)
+	if err != nil {
+		return fmt.Errorf("verify certificate chain: %w", err)
+	}
+
+	for _, verified := range chains {
+		if len(verified) >= 3 &&
+			hasExtension(verified[0], appleLeafMarkerOID) &&
+			hasExtension(verified[1], appleIntermediateMarkerOID) {
+			return nil
+		}
+	}
+	return errors.New("certificate chain is missing required App Store extensions")
+}
+
+func (asn *AppStoreServerNotification) parseSignedJWT(payload string, claims jwt.Claims) error {
+	certificates, err := asn.extractCertificateChain(payload)
+	if err != nil {
 		return err
 	}
 
+	if err = asn.verifyCertificate(certificates[0], certificates[1:]); err != nil {
+		return err
+	}
+
+	publicKey, ok := certificates[0].PublicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return errors.New("appstore public key must be of type ecdsa.PublicKey")
+	}
+
+	token, err := jwt.ParseWithClaims(payload, claims, func(token *jwt.Token) (interface{}, error) {
+		return publicKey, nil
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodES256.Alg()}))
+	if err != nil {
+		return err
+	}
+	if !token.Valid {
+		return errors.New("invalid signed payload")
+	}
 	return nil
 }
 
-func (asn *AppStoreServerNotification) extractPublicKeyFromPayload(payload string) (*ecdsa.PublicKey, error) {
-	certStr, err := asn.extractHeaderByIndex(payload, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	cert, err := x509.ParseCertificate(certStr)
-	if err != nil {
-		return nil, err
-	}
-
-	switch pk := cert.PublicKey.(type) {
-	case *ecdsa.PublicKey:
-		return pk, nil
-	default:
-		return nil, errors.New("appstore public key must be of type ecdsa.PublicKey")
-	}
-}
-
 func (asn *AppStoreServerNotification) parseJwtSignedPayload(payload string) error {
-	rootCertStr, err := asn.extractHeaderByIndex(payload, 2)
-	if err != nil {
-		return err
-	}
-
-	intermediateCertStr, err := asn.extractHeaderByIndex(payload, 1)
-	if err != nil {
-		return err
-	}
-
-	if err = asn.verifyCertificate(rootCertStr, intermediateCertStr); err != nil {
-		return err
-	}
-
 	notificationPayload := &NotificationPayload{}
-	_, err = jwt.ParseWithClaims(payload, notificationPayload, func(token *jwt.Token) (interface{}, error) {
-		return asn.extractPublicKeyFromPayload(payload)
-	})
-	if err != nil {
+	if err := asn.parseSignedJWT(payload, notificationPayload); err != nil {
 		return err
 	}
 	asn.Payload = notificationPayload
@@ -125,10 +141,7 @@ func (asn *AppStoreServerNotification) parseJwtSignedPayload(payload string) err
 
 	if sti := asn.Payload.Data.SignedTransactionInfo; sti != "" {
 		transactionInfo := &TransactionInfo{}
-		_, err = jwt.ParseWithClaims(sti, transactionInfo, func(token *jwt.Token) (interface{}, error) {
-			return asn.extractPublicKeyFromPayload(sti)
-		})
-		if err != nil {
+		if err := asn.parseSignedJWT(sti, transactionInfo); err != nil {
 			return fmt.Errorf("parse signedTransactionInfo: %w", err)
 		}
 		asn.TransactionInfo = transactionInfo
@@ -136,13 +149,18 @@ func (asn *AppStoreServerNotification) parseJwtSignedPayload(payload string) err
 
 	if sri := asn.Payload.Data.SignedRenewalInfo; sri != "" {
 		renewalInfo := &RenewalInfo{}
-		_, err = jwt.ParseWithClaims(sri, renewalInfo, func(token *jwt.Token) (interface{}, error) {
-			return asn.extractPublicKeyFromPayload(sri)
-		})
-		if err != nil {
+		if err := asn.parseSignedJWT(sri, renewalInfo); err != nil {
 			return fmt.Errorf("parse signedRenewalInfo: %w", err)
 		}
 		asn.RenewalInfo = renewalInfo
+	}
+
+	if appTransaction := asn.Payload.AppData; appTransaction != nil && appTransaction.SignedAppTransactionInfo != "" {
+		appTransactionInfo := &AppTransactionInfo{}
+		if err := asn.parseSignedJWT(appTransaction.SignedAppTransactionInfo, appTransactionInfo); err != nil {
+			return fmt.Errorf("parse signedAppTransactionInfo: %w", err)
+		}
+		asn.AppTransactionInfo = appTransactionInfo
 	}
 
 	asn.IsValid = true
